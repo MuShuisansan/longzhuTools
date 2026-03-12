@@ -373,7 +373,7 @@ export default function App() {
                     </h3>
                     <div className="flex gap-3">
                       {[
-                        { name: t.example, url: 'https://img.icons8.com/color/512/doraemon.png' }
+                        { name: t.example, url: '/static/demo.jpg' }
                       ].map(example => (
                         <button
                           key={example.name}
