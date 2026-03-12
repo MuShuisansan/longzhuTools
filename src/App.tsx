@@ -97,6 +97,8 @@ export default function App() {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
+  const activePointers = useRef<Map<number, { x: number, y: number }>>(new Map());
+  const lastPinchDistance = useRef<number | null>(null);
   const [selectedColorForEdit, setSelectedColorForEdit] = useState<BeadColor | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
 
@@ -147,21 +149,58 @@ export default function App() {
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (selectedColorForEdit) return;
-    setIsDragging(true);
-    dragStart.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
+    
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    
+    if (activePointers.current.size === 1) {
+      setIsDragging(true);
+      dragStart.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
+    } else if (activePointers.current.size === 2) {
+      setIsDragging(false);
+      const pointers = Array.from(activePointers.current.values());
+      lastPinchDistance.current = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
+    }
+    
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    setOffset({
-      x: e.clientX - dragStart.current.x,
-      y: e.clientY - dragStart.current.y
-    });
+    if (!activePointers.current.has(e.pointerId)) return;
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (activePointers.current.size === 1 && isDragging) {
+      setOffset({
+        x: e.clientX - dragStart.current.x,
+        y: e.clientY - dragStart.current.y
+      });
+    } else if (activePointers.current.size === 2) {
+      const pointers = Array.from(activePointers.current.values());
+      const distance = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
+      
+      if (lastPinchDistance.current !== null && lastPinchDistance.current !== 0) {
+        const factor = distance / lastPinchDistance.current;
+        // Use a smaller sensitivity for pinch zoom to make it smoother
+        const smoothedFactor = 1 + (factor - 1) * 0.5;
+        setZoom(prev => Math.min(Math.max(prev * smoothedFactor, 0.05), 10));
+      }
+      lastPinchDistance.current = distance;
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
-    setIsDragging(false);
+    activePointers.current.delete(e.pointerId);
+    if (activePointers.current.size < 2) {
+      lastPinchDistance.current = null;
+    }
+    
+    if (activePointers.current.size === 0) {
+      setIsDragging(false);
+    } else if (activePointers.current.size === 1) {
+      const remaining = activePointers.current.values().next().value;
+      dragStart.current = { x: remaining.x - offset.x, y: remaining.y - offset.y };
+      setIsDragging(true);
+    }
+    
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
   };
 
@@ -668,7 +707,7 @@ export default function App() {
                 )}
               >
                 {/* Operation Hints */}
-                <div className="absolute top-4 right-4 z-20 flex flex-col gap-1 pointer-events-none">
+                <div className="absolute top-4 right-4 z-20 hidden sm:flex flex-col gap-1 pointer-events-none">
                   <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 flex items-center gap-2">
                     <kbd className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold text-white">Ctrl</kbd>
                     <span className="text-white/80 text-[10px] font-bold">+ {t.ctrlZoom.split('+ ')[1]}</span>
