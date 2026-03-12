@@ -231,6 +231,10 @@ export default function App() {
 
   const handleGenerate = useCallback(async () => {
     if (!imageUrl) return;
+    if (!gridWidth || !gridHeight || gridWidth <= 0 || gridHeight <= 0) {
+      alert(lang === 'zh' ? '请输入有效的尺寸' : 'Please enter a valid size');
+      return;
+    }
     setIsProcessing(true);
     try {
       const result = await processImage(imageUrl, gridWidth, gridHeight, PALETTES[paletteName], maxColors);
@@ -475,20 +479,28 @@ export default function App() {
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <input
-                    type="number"
-                    min="10"
-                    max="200"
-                    value={gridWidth}
-                    onChange={(e) => setGridWidth(Number(e.target.value) || 50)}
+                    type="text"
+                    inputMode="numeric"
+                    value={gridWidth || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || /^\d+$/.test(val)) {
+                        setGridWidth(val === '' ? 0 : Number(val));
+                      }
+                    }}
                     className="w-full px-3 py-2 border-2 border-pink-100 rounded-xl text-sm font-bold focus:ring-4 focus:ring-pink-100 focus:border-pink-400 transition-all outline-none"
                     placeholder={t.width}
                   />
                   <input
-                    type="number"
-                    min="10"
-                    max="200"
-                    value={gridHeight}
-                    onChange={(e) => setGridHeight(Number(e.target.value) || 50)}
+                    type="text"
+                    inputMode="numeric"
+                    value={gridHeight || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || /^\d+$/.test(val)) {
+                        setGridHeight(val === '' ? 0 : Number(val));
+                      }
+                    }}
                     className="w-full px-3 py-2 border-2 border-pink-100 rounded-xl text-sm font-bold focus:ring-4 focus:ring-pink-100 focus:border-pink-400 transition-all outline-none"
                     placeholder={t.height}
                   />
