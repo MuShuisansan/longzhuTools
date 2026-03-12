@@ -387,7 +387,7 @@ export default function App() {
                     </h3>
                     <div className="flex gap-3">
                       {[
-                        { name: t.example, url: '/static/dcat.jpg' }
+                        { name: t.example, url: '/static/demo.jpg' }
                       ].map(example => (
                         <button
                           key={example.name}
