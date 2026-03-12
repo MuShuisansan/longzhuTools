@@ -37,6 +37,10 @@ const translations = {
     dragMove: "按住左键拖拽",
     selectColor: "选择颜色",
     example: "哆啦A梦",
+    uploaderDrop: "将图片拖到这里",
+    uploaderIdle: "拖拽图片到此处",
+    uploaderHint: "或点击选择文件 (支持 JPG, PNG, WebP, 最大 10MB)",
+    uploaderError: "请上传小于 10MB 的图片",
   },
   en: {
     title: "PixelBeads",
@@ -69,6 +73,10 @@ const translations = {
     dragMove: "Drag to Move",
     selectColor: "Select Color",
     example: "Doraemon",
+    uploaderDrop: "Drop image here",
+    uploaderIdle: "Drag & drop an image here",
+    uploaderHint: "or click to select files (JPG, PNG, WebP up to 10MB)",
+    uploaderError: "Please upload an image smaller than 10MB",
   }
 };
 
@@ -299,40 +307,40 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 text-slate-800 font-sans flex flex-col selection:bg-pink-200 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]">
-      <header className="bg-white/90 backdrop-blur-md border-b-2 border-pink-200 py-3 px-6 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white shadow-md transform rotate-3 hover:rotate-6 transition-transform">
-            <Sparkles className="w-6 h-6" />
+      <header className="bg-white/90 backdrop-blur-md border-b-2 border-pink-200 py-3 px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between sticky top-0 z-30 shadow-sm gap-4">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white shadow-md transform rotate-3 hover:rotate-6 transition-transform shrink-0">
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 truncate">
             {t.title}
           </h1>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
           <button
             onClick={() => setLang(l => l === 'zh' ? 'en' : 'zh')}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-all"
+            className="flex items-center gap-2 px-3 py-2 text-[10px] sm:text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-all shrink-0"
           >
             <Languages className="w-4 h-4" />
             {lang === 'zh' ? 'English' : '中文'}
           </button>
 
           {processedData && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={handleExportList}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-pink-600 bg-pink-50 border-2 border-pink-200 rounded-xl hover:bg-pink-100 hover:border-pink-300 transition-all active:scale-95"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 text-[10px] sm:text-sm font-bold text-pink-600 bg-pink-50 border-2 border-pink-200 rounded-xl hover:bg-pink-100 hover:border-pink-300 transition-all active:scale-95 shrink-0"
               >
-                <FileText className="w-4 h-4" />
-                {t.exportList}
+                <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden xs:inline">{t.exportList}</span>
               </button>
               <button
                 onClick={handleExportImage}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all shadow-md hover:shadow-lg active:scale-95"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 text-[10px] sm:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all shadow-md hover:shadow-lg active:scale-95 shrink-0"
               >
-                <Download className="w-4 h-4" />
-                {t.saveBlueprint}
+                <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden xs:inline">{t.saveBlueprint}</span>
               </button>
             </div>
           )}
@@ -365,7 +373,13 @@ export default function App() {
                 <div className="w-full space-y-6">
                   <ImageUploader 
                     onImageUpload={handleImageUpload} 
-                    className="border-pink-200 hover:border-pink-400 hover:bg-pink-50/50 rounded-2xl py-12 transition-all" 
+                    className="border-pink-200 hover:border-pink-400 hover:bg-pink-50/50 rounded-2xl py-8 sm:py-12 transition-all" 
+                    translations={{
+                      drop: t.uploaderDrop,
+                      idle: t.uploaderIdle,
+                      hint: t.uploaderHint,
+                      error: t.uploaderError
+                    }}
                   />
                   <div className="flex flex-col items-center gap-3">
                     <h3 className="text-xs font-bold text-slate-400 flex items-center gap-2">
@@ -481,7 +495,7 @@ export default function App() {
                   <Sparkles className="w-4 h-4 text-pink-400" />
                   {t.colorReduction}
                 </label>
-                <div className="grid grid-cols-5 gap-1.5">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                   {[8, 16, 32, 64, 0].map((count) => (
                     <button
                       key={count}
@@ -521,12 +535,12 @@ export default function App() {
             </div>
           </div>
         </div>
-        <div className="mt-8 flex justify-center">
+        <div className="mt-8 flex justify-center px-4">
             <button
               onClick={handleGenerate}
               disabled={!imageUrl || isProcessing}
               className={cn(
-                "group relative flex items-center gap-3 px-12 py-4 text-lg font-black text-white rounded-2xl transition-all shadow-xl active:scale-95",
+                "group relative flex items-center justify-center gap-3 w-full sm:w-auto px-8 sm:px-12 py-4 text-base sm:text-lg font-black text-white rounded-2xl transition-all shadow-xl active:scale-95",
                 imageUrl && !isProcessing 
                   ? "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:shadow-pink-200/50 hover:-translate-y-1" 
                   : "bg-slate-200 cursor-not-allowed shadow-none"
@@ -546,34 +560,34 @@ export default function App() {
         <section className={cn("space-y-6 transition-all duration-500", !processedData ? "hidden" : "block opacity-100 translate-y-0")}>
           <div className="bg-white rounded-3xl shadow-xl border-2 border-pink-100 overflow-hidden flex flex-col">
             {/* Toolbar */}
-            <div className="bg-white/90 backdrop-blur-sm border-b-2 border-pink-100 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 z-20">
-              <div className="flex items-center gap-4">
+            <div className="bg-white/90 backdrop-blur-sm border-b-2 border-pink-100 p-4 flex flex-col lg:flex-row items-center justify-between gap-4 z-20">
+              <div className="flex items-center justify-between w-full lg:w-auto gap-4">
                 <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 flex items-center gap-2">
                   <Sparkles className="w-6 h-6 text-pink-500" />
                   {t.preview}
                 </span>
                 {isProcessing && (
-                  <span className="flex items-center gap-2 text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-100 animate-pulse">
+                  <span className="flex items-center gap-2 text-[10px] sm:text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-100 animate-pulse">
                     <RefreshCw className="w-3 h-3 animate-spin" />
                     {t.processing}
                   </span>
                 )}
               </div>
               
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center justify-center lg:justify-end gap-3 sm:gap-4 w-full lg:w-auto">
                 {processedData && (
                   <div className="relative">
                     <button
                       onClick={() => setShowColorPicker(!showColorPicker)}
                       className={cn(
-                        "flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl border-2 transition-all active:scale-95",
+                        "flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-xl border-2 transition-all active:scale-95",
                         selectedColorForEdit 
                           ? "bg-purple-50 border-purple-400 text-purple-600" 
                           : "bg-slate-50 border-slate-200 text-slate-600 hover:border-purple-200"
                       )}
                     >
                       <Palette className="w-4 h-4" />
-                      {t.brush}
+                      <span className="hidden xs:inline">{t.brush}</span>
                       {selectedColorForEdit && (
                         <div className="w-3 h-3 rounded-full border border-white shadow-sm" style={{ backgroundColor: selectedColorForEdit.hex }} />
                       )}
@@ -617,7 +631,7 @@ export default function App() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-200">
+                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-200 shrink-0">
                   <button 
                     onClick={handleAutoFit}
                     className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-pink-50 hover:text-pink-600 transition-colors shadow-sm"
@@ -627,16 +641,16 @@ export default function App() {
                   </button>
                   <div className="w-px h-4 bg-slate-200" />
                   <button onClick={() => setZoom(z => Math.max(0.05, z * 0.9))} className="w-8 h-8 font-bold text-slate-600 hover:text-pink-600">-</button>
-                  <span className="text-xs font-black font-mono w-12 text-center">{Math.round(zoom * 100)}%</span>
+                  <span className="text-[10px] sm:text-xs font-black font-mono w-10 sm:w-12 text-center">{Math.round(zoom * 100)}%</span>
                   <button onClick={() => setZoom(z => Math.min(5, z * 1.1))} className="w-8 h-8 font-bold text-slate-600 hover:text-pink-600">+</button>
                 </div>
                 
                 <button
                   onClick={handleExportImage}
-                  className="flex items-center gap-2 px-6 py-2 text-sm font-black text-white bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all shadow-md hover:shadow-lg active:scale-95"
+                  className="flex items-center gap-2 px-4 sm:px-6 py-2 text-xs sm:text-sm font-black text-white bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all shadow-md hover:shadow-lg active:scale-95 shrink-0"
                 >
                   <Download className="w-4 h-4" />
-                  {t.saveBlueprint}
+                  <span className="hidden xs:inline">{t.saveBlueprint}</span>
                 </button>
               </div>
             </div>
@@ -693,7 +707,7 @@ export default function App() {
                 </h3>
                 <button 
                   onClick={handleExportList}
-                  className="px-6 py-2 bg-pink-50 text-pink-600 rounded-xl font-black text-sm border-2 border-pink-100 hover:bg-pink-100 transition-all"
+                  className="hidden sm:block px-6 py-2 bg-pink-50 text-pink-600 rounded-xl font-black text-sm border-2 border-pink-100 hover:bg-pink-100 transition-all"
                 >
                   {t.exportText}
                 </button>
