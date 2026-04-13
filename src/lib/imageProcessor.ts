@@ -137,6 +137,9 @@ export async function processImage(
           if (colorMapping[pixel.color.id]) {
             pixel.color = colorMapping[pixel.color.id];
           }
+          if (!colorCounts[pixel.color.name]) {
+            colorCounts[pixel.color.name] = { color: pixel.color, count: 0 };
+          }
           colorCounts[pixel.color.name].count++;
         }
       }
