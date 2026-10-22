@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ImageUploader } from './components/ImageUploader';
 import { PALETTES, PaletteName, BeadColor } from './lib/palettes';
 import { processImage, ProcessedImage, drawProcessedImage, drawBlueprint } from './lib/imageProcessor';
-import { Download, Settings, Grid, Palette, RefreshCw, FileText, Sparkles, Heart, Maximize, Languages, ChevronDown } from 'lucide-react';
+import { Download, Settings, Grid, Palette, RefreshCw, FileText, Sparkles, Heart, Maximize, Languages, ChevronDown, LayoutGrid } from 'lucide-react';
 import { cn } from './lib/utils';
 
 const translations = {
@@ -41,6 +41,11 @@ const translations = {
     uploaderIdle: "拖拽图片到此处",
     uploaderHint: "或点击选择文件 (支持 JPG, PNG, WebP, 最大 10MB)",
     uploaderError: "请上传小于 10MB 的图片",
+    pegboardSettings: "拼板设置",
+    enablePegboard: "启用拼板分割",
+    pegboardSize: "单块拼板尺寸",
+    boardsNeeded: "预计需要拼板",
+    boardLabel: "板",
   },
   en: {
     title: "PixelBeads",
@@ -77,6 +82,11 @@ const translations = {
     uploaderIdle: "Drag & drop an image here",
     uploaderHint: "or click to select files (JPG, PNG, WebP up to 10MB)",
     uploaderError: "Please upload an image smaller than 10MB",
+    pegboardSettings: "Pegboard Settings",
+    enablePegboard: "Enable Pegboard Splitting",
+    pegboardSize: "Single Board Size",
+    boardsNeeded: "Pegboards Needed",
+    boardLabel: "Board",
   }
 };
 
@@ -91,6 +101,8 @@ export default function App() {
   const [maxColors, setMaxColors] = useState<number>(0); // 0 means unlimited
   const [showGrid, setShowGrid] = useState<boolean>(true);
   const [showLabels, setShowLabels] = useState<boolean>(true);
+  const [showPegboard, setShowPegboard] = useState<boolean>(false);
+  const [pegboardSize, setPegboardSize] = useState<number>(29);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processedData, setProcessedData] = useState<ProcessedImage | null>(null);
   const [zoom, setZoom] = useState<number>(1);
@@ -257,9 +269,18 @@ export default function App() {
   useEffect(() => {
     if (processedData && canvasRef.current) {
       const baseCellSize = 30;
-      drawProcessedImage(canvasRef.current, processedData, baseCellSize, showGrid, 'transparent', showLabels ? paletteName : undefined);
+      drawProcessedImage(
+        canvasRef.current, 
+        processedData, 
+        baseCellSize, 
+        showGrid, 
+        'transparent', 
+        showLabels ? paletteName : undefined,
+        showPegboard,
+        pegboardSize
+      );
     }
-  }, [processedData, showGrid, showLabels, paletteName]);
+  }, [processedData, showGrid, showLabels, paletteName, showPegboard, pegboardSize]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!processedData || !selectedColorForEdit || !canvasRef.current) return;
@@ -317,7 +338,7 @@ export default function App() {
     
     // Create a high-res canvas for export
     const exportCanvas = document.createElement('canvas');
-    drawBlueprint(exportCanvas, processedData, 30, paletteName); // 30px per cell for high res, includes legend and coordinates
+    drawBlueprint(exportCanvas, processedData, 30, paletteName, showPegboard, pegboardSize); // 30px per cell for high res, includes legend and coordinates
     
     const link = document.createElement('a');
     link.download = `pixel-beads-blueprint-${Date.now()}.png`;
@@ -582,6 +603,51 @@ export default function App() {
                   </div>
                   <span className="text-sm font-bold text-slate-600 group-hover:text-purple-500 transition-colors">{t.showLabels}</span>
                 </label>
+
+                <div className="pt-4 border-t border-slate-100 space-y-4">
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative flex items-center">
+                      <input type="checkbox" checked={showPegboard} onChange={(e) => setShowPegboard(e.target.checked)} className="sr-only" />
+                      <div className={cn("w-10 h-6 rounded-full transition-colors", showPegboard ? "bg-red-400" : "bg-slate-200")}></div>
+                      <div className={cn("absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform shadow-sm", showPegboard ? "translate-x-4" : "translate-x-0")}></div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <LayoutGrid className="w-4 h-4 text-red-400" />
+                      <span className="text-sm font-bold text-slate-600 group-hover:text-red-500 transition-colors">{t.enablePegboard}</span>
+                    </div>
+                  </label>
+
+                  {showPegboard && (
+                    <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{t.pegboardSize}</label>
+                        <div className="flex gap-2">
+                          {[14, 29, 50].map(size => (
+                            <button
+                              key={size}
+                              onClick={() => setPegboardSize(size)}
+                              className={cn(
+                                "px-3 py-1 text-[10px] font-bold rounded-lg border transition-all",
+                                pegboardSize === size 
+                                  ? "bg-red-50 border-red-200 text-red-600" 
+                                  : "bg-white border-slate-100 text-slate-400 hover:border-red-100"
+                              )}
+                            >
+                              {size}x{size}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="bg-red-50 p-3 rounded-xl border border-red-100 flex items-center justify-between">
+                        <span className="text-xs font-bold text-red-700">{t.boardsNeeded}</span>
+                        <span className="text-sm font-black text-red-600">
+                          {Math.ceil((gridWidth || 0) / (pegboardSize || 1)) * Math.ceil((gridHeight || 0) / (pegboardSize || 1))} {lang === 'zh' ? '块' : 'pcs'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

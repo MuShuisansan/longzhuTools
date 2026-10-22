@@ -137,9 +137,6 @@ export async function processImage(
           if (colorMapping[pixel.color.id]) {
             pixel.color = colorMapping[pixel.color.id];
           }
-          if (!colorCounts[pixel.color.name]) {
-            colorCounts[pixel.color.name] = { color: pixel.color, count: 0 };
-          }
           colorCounts[pixel.color.name].count++;
         }
       }
@@ -163,7 +160,9 @@ export function drawProcessedImage(
   cellSize: number = 10,
   showGrid: boolean = false,
   backgroundColor: string = 'transparent',
-  labelType?: 'MARD' | 'DMC'
+  labelType?: 'MARD' | 'DMC',
+  showPegboard: boolean = false,
+  pegboardSize: number = 29
 ) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -251,6 +250,41 @@ export function drawProcessedImage(
       }
     }
   }
+
+  // Draw Pegboard boundaries
+  if (showPegboard && pegboardSize > 0) {
+    ctx.strokeStyle = '#FF0000';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 5]);
+
+    for (let x = 0; x <= processed.width; x += pegboardSize) {
+      ctx.beginPath();
+      ctx.moveTo(x * cellSize, 0);
+      ctx.lineTo(x * cellSize, canvas.height);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= processed.height; y += pegboardSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y * cellSize);
+      ctx.lineTo(canvas.width, y * cellSize);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]); // Reset dash
+    
+    // Label boards
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.6)';
+    ctx.font = `bold ${Math.max(12, cellSize * 0.8)}px sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    
+    let boardNum = 1;
+    for (let y = 0; y < processed.height; y += pegboardSize) {
+      for (let x = 0; x < processed.width; x += pegboardSize) {
+        ctx.fillText(`${boardNum}`, x * cellSize + 5, y * cellSize + 5);
+        boardNum++;
+      }
+    }
+  }
 }
 
 // Helper to draw the full blueprint for export
@@ -258,7 +292,9 @@ export function drawBlueprint(
   canvas: HTMLCanvasElement,
   processed: ProcessedImage,
   cellSize: number = 30,
-  labelType: 'MARD' | 'DMC' = 'MARD'
+  labelType: 'MARD' | 'DMC' = 'MARD',
+  showPegboard: boolean = false,
+  pegboardSize: number = 29
 ) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -343,6 +379,44 @@ export function drawBlueprint(
   }
 
   ctx.restore();
+
+  // Draw Pegboard boundaries on blueprint if requested
+  if (showPegboard && pegboardSize > 0) {
+    ctx.save();
+    ctx.translate(margin, margin);
+    ctx.strokeStyle = '#FF0000';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([10, 10]);
+
+    for (let x = 0; x <= processed.width; x += pegboardSize) {
+      ctx.beginPath();
+      ctx.moveTo(x * cellSize, 0);
+      ctx.lineTo(x * cellSize, processed.height * cellSize);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= processed.height; y += pegboardSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y * cellSize);
+      ctx.lineTo(processed.width * cellSize, y * cellSize);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    
+    // Label boards on blueprint
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+    ctx.font = `bold ${cellSize * 0.8}px sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    
+    let boardNum = 1;
+    for (let y = 0; y < processed.height; y += pegboardSize) {
+      for (let x = 0; x < processed.width; x += pegboardSize) {
+        ctx.fillText(`${boardNum}`, x * cellSize + 10, y * cellSize + 10);
+        boardNum++;
+      }
+    }
+    ctx.restore();
+  }
 
   // Draw Legend
   const legendStartY = margin + processed.height * cellSize + margin;
